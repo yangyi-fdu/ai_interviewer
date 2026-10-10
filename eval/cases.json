@@ -1,0 +1,14 @@
+{
+  "question": "Explain what QuickSort is and what its time complexity is.",
+  "answers": {
+    "high_1": "It is a divide-and-conquer algorithm. Pick a pivot, partition the array into two halves and sort each recursively. Average O(n log n), worst case O(n^2); choosing a random pivot avoids the worst case in practice.",
+    "high_2": "It partitions the range around a pivot with two pointers, smaller elements to the left and larger to the right, then recurses on both sides. Average time O(n log n), extra space O(log n) for the recursion.",
+    "high_3": "The core is the partition step. In the best case each partition splits the array in half, so the recursion depth is log n and the total work is O(n log n). In the worst case it degrades to O(n^2).",
+    "mid_1": "It's a sorting algorithm and it is very fast. It uses the idea of splitting things in half. The time complexity is O(n log n), I think.",
+    "mid_2": "QuickSort trades space for time. It splits the array into several blocks and sorts them. I remember the complexity is O(n^2).",
+    "mid_3": "It uses divide and conquer and compares against a middle number each time. Average time is O(n), worst case is O(n log n).",
+    "low_1": "QuickSort is the algorithm that sorts really fast. It uses a binary tree structure and companies use it a lot.",
+    "low_2": "I don't know how it works internally. You just call sort() and it's done.",
+    "low_3": "I forgot. It's similar to bubble sort and the time complexity is O(1)."
+  }
+}
