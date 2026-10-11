@@ -12,9 +12,9 @@ load_dotenv()
 
 client = AsyncOpenAI(
     api_key=os.getenv("LLM_API_KEY"),
-    base_url=os.getenv("LLM_BASE_URL", "https://api.deepseek.com"),
+    base_url=os.getenv("LLM_BASE_URL", "https://open.bigmodel.cn/api/paas/v4/"),
 )
-MODEL = os.getenv("LLM_MODEL", "deepseek-chat")
+MODEL = os.getenv("LLM_MODEL", "glm-4-flash")
 
 
 async def call_llm(messages: list[dict]) -> str:

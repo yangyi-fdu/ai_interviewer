@@ -1,4 +1,5 @@
 """Discord front end. It only relays messages; all interview logic lives in the API."""
+import asyncio
 import os
 
 import aiohttp
@@ -43,12 +44,12 @@ async def on_message(message: discord.Message):
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.post(BACKEND_URL, json=payload,
-                                        timeout=aiohttp.ClientTimeout(total=60)) as response:
+                                        timeout=aiohttp.ClientTimeout(total=120)) as response:
                     if response.status != 200:
                         await message.channel.send(f"Backend error (HTTP {response.status}). Please resend.")
                         return
                     data = await response.json()
-        except aiohttp.ClientError:
+        except (aiohttp.ClientError, asyncio.TimeoutError):
             await message.channel.send("Cannot reach the interview backend. Is the API running?")
             return
 

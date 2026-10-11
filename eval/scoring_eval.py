@@ -77,8 +77,8 @@ async def score_once(client, model, sem, prompt, question, answer, temperature):
 async def run(repeats: int, temperature: float, concurrency: int) -> dict:
     load_dotenv()
     client = AsyncOpenAI(api_key=os.getenv("LLM_API_KEY"),
-                         base_url=os.getenv("LLM_BASE_URL", "https://api.deepseek.com"))
-    model = os.getenv("LLM_MODEL", "deepseek-chat")
+                         base_url=os.getenv("LLM_BASE_URL", "https://open.bigmodel.cn/api/paas/v4/"))
+    model = os.getenv("LLM_MODEL", "glm-4-flash")
     cases = json.loads((HERE / "cases.json").read_text(encoding="utf-8"))
     sem = asyncio.Semaphore(concurrency)
 
@@ -114,7 +114,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--repeats", type=int, default=5)
     parser.add_argument("--temperature", type=float, default=0.7)
-    parser.add_argument("--concurrency", type=int, default=8)
+    parser.add_argument("--concurrency", type=int, default=4)
     args = parser.parse_args()
 
     result = asyncio.run(run(args.repeats, args.temperature, args.concurrency))

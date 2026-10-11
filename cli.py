@@ -19,7 +19,7 @@ def main():
             break
         if not message:
             continue
-        r = requests.post(BACKEND_URL, json={"user_id": user_id, "message": message}, timeout=90)
+        r = requests.post(BACKEND_URL, json={"user_id": user_id, "message": message}, timeout=120)
         if r.status_code != 200:
             print(f"[error {r.status_code}] {r.text}\n")
             continue

@@ -2,7 +2,7 @@
 
 A mock technical interviewer that runs a fixed three-question interview over Discord (or a terminal client), then writes a structured score report that is stored in SQLite and browsed in a Streamlit dashboard. Personal project, 2026.
 
-**Stack:** FastAPI · asyncio · discord.py · aiohttp · SQLite · Streamlit · Pandas · OpenAI-compatible LLM API (DeepSeek)
+**Stack:** FastAPI · asyncio · discord.py · aiohttp · SQLite · Streamlit · Pandas · any OpenAI-compatible LLM API (default: Zhipu GLM-4-Flash, free tier)
 
 ## Problem
 
