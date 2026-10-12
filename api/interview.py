@@ -57,6 +57,31 @@ Strengths: <one sentence>
 Weaknesses: <one sentence>
 Advice: <specific next steps>"""
 
+# Variant that makes the judge verify the candidate's claims before scoring.
+# Tested against RUBRIC_PROMPT in eval/scoring_eval.py.
+FACT_CHECK_RUBRIC_PROMPT = """The interview is over. You are now on the hiring panel.
+First, list every technical claim the candidate made (complexities, definitions,
+how something works) and mark each one CORRECT or WRONG using your own knowledge.
+Confident or fluent wording is not evidence; only correctness counts.
+
+Then score three dimensions:
+- Knowledge depth (0-40): at most 15 if any core claim is WRONG
+- Logical rigour (0-30)
+- Clarity of expression (0-30): clear but wrong explanations still lose points under knowledge
+
+Reply in exactly this format:
+### Fact check
+- <claim>: CORRECT or WRONG
+### Interview assessment
+Knowledge depth: <score>/40
+Logical rigour: <score>/30
+Clarity: <score>/30
+Overall: <sum>/100
+
+Strengths: <one sentence>
+Weaknesses: <one sentence>
+Advice: <specific next steps>"""
+
 FINISH_NOTE = "[The interview is over. Do not answer any question. Write the assessment now.]"
 RESTART_WORDS = {"restart", "/restart"}
 MAX_HISTORY = 10

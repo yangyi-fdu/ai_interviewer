@@ -24,7 +24,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 
-from api.interview import RUBRIC_PROMPT, parse_scores
+from api.interview import FACT_CHECK_RUBRIC_PROMPT, RUBRIC_PROMPT, parse_scores
 
 HERE = Path(__file__).resolve().parent
 TIERS = ("high", "mid", "low")
@@ -32,7 +32,7 @@ TIERS = ("high", "mid", "low")
 BASELINE_PROMPT = """You are a technical interviewer. Give the candidate's answer one overall score from 0 to 100.
 Reply with exactly one line: Overall: <score>/100"""
 
-PROMPTS = {"baseline": BASELINE_PROMPT, "rubric": RUBRIC_PROMPT}
+PROMPTS = {"baseline": BASELINE_PROMPT, "rubric": RUBRIC_PROMPT, "rubric_fact_check": FACT_CHECK_RUBRIC_PROMPT}
 
 
 def summarise(scores: dict[str, list]) -> dict:

@@ -40,42 +40,42 @@ Details that matter in practice:
 
 ## Evaluating the scoring prompt
 
-The question was whether the structured rubric scores answers better than a plain "give a score from 0 to 100" prompt. The test set ([`eval/cases.json`](eval/cases.json)) has 9 answers to one QuickSort question: 3 strong, 3 partly wrong and 3 weak. Each prompt scores each answer several times.
+The question: does a structured rubric score answers better than a plain "give a score from 0 to 100" prompt? The test set ([`eval/cases.json`](eval/cases.json)) has 9 answers to one QuickSort question: 3 strong, 3 middle (`mid_1` vague but correct, `mid_2` and `mid_3` stating wrong complexities with confidence) and 3 weak. Each prompt scores each answer 5 times.
 
-A good judge should give the same answer the same score on every run, keep answers of the same quality close together, and keep strong and weak answers far apart.
+A good judge should give the same answer the same score on every run, keep answers of the same quality close together, keep strong and weak answers far apart, and above all not reward answers that sound right but are wrong.
 
-### First run (March 2026) and what was wrong with its conclusion
+[`eval/scoring_eval.py`](eval/scoring_eval.py) imports the prompts the product actually uses, excludes and counts unparsable replies, and saves raw scores to [`eval/results/`](eval/results/).
 
-9 answers × 3 repeats × 2 prompts = 54 calls, temperature 0.7.
+### Results (October 2026, GLM-4-Flash, temperature 0.7, 9 answers × 5 repeats × 3 prompts = 135 calls)
 
-| | Baseline prompt | Structured rubric |
+| Metric | Baseline (one score) | Structured rubric | Rubric + fact check |
+|---|:---:|:---:|:---:|
+| Mean score: strong / middle / weak | 91.0 / 75.0 / 30.7 | 93.5 / 70.8 / 28.3 | 100.0 / 69.0 / 20.0 |
+| Repeatability: SD over 5 runs of one answer ↓ | **4.6** | 4.7 | 7.9 |
+| Separation, strong minus weak ↑ | 60.3 | 65.1 | **80.0** |
+| Separation / within-tier SD ↑ | **6.6** | 5.8 | 4.2 |
+| `mid_3` ("average O(n), worst O(n log n)", both wrong) ↓ | 79.0 | 88.8 | **57.0** |
+| `mid_1` (vague but correct) | 75.0 | 63.6 | 92.0 |
+| Unparsable replies | 0 | 0 | 0 |
+
+- **The structured rubric alone did not rank answers better than one overall score.** Both were equally repeatable (SD about 4.6), and the separation differed by a few points; an earlier two-prompt run on the same day gave 61.0 vs 60.2, so that gap is within run-to-run noise.
+- **The real failure is fluent but wrong answers.** With the plain rubric, `mid_3`, which gets both complexities wrong, scored 88.8: about the same as the strong answers.
+- **Adding an explicit fact-check step fixed that case** (88.8 → 57.0) and widened the gap between strong and weak answers to 80 points. It has costs: scores became noisier (repeat SD 7.9), strong answers all hit the 100 ceiling, and the vague-but-correct `mid_1` jumped to 92 because the check only penalises wrong claims, not shallow ones.
+
+No prompt is better on every measure, so the product keeps the plain rubric (`RUBRIC_PROMPT`) and the fact-check variant (`FACT_CHECK_RUBRIC_PROMPT`) stays in [`api/interview.py`](api/interview.py) as a tested alternative. Next steps would be a larger test set with several questions, temperature 0 for scoring, and a rubric that also caps the score of correct but shallow answers.
+
+### Earlier run (March 2026) and what was wrong with its conclusion
+
+The first version of this experiment (Chinese prompts, DeepSeek, 3 repeats, 2 prompts) reported that the rubric cut the standard deviation of all scores by 27 % and called that "more stable scoring". **That reading was wrong.** The SD of all scores pooled together mixes noise, which should be small, with the gap between strong and weak answers, which should be large. Re-analysed properly, its own numbers show the opposite:
+
+| | Baseline | Structured rubric |
 |---|:---:|:---:|
-| Mean score: strong / partly wrong / weak | 83.3 / 39.4 / 14.4 | 75.8 / 50.6 / 28.9 |
-| SD within tier: strong / partly wrong / weak | 5.0 / 3.9 / 15.1 | 8.7 / 5.9 / 16.0 |
-| Pooled within-tier SD ↓ | **9.5** | 11.1 |
-| Separation, strong minus weak ↑ | **68.9** | 46.9 |
-| Separation / within-tier SD ↑ | **7.3** | 4.2 |
-| SD of all 27 scores pooled | 30.4 | 22.2 |
+| Mean score: strong / middle / weak | 83.3 / 39.4 / 14.4 | 75.8 / 50.6 / 28.9 |
+| SD within tier: strong / middle / weak | 5.0 / 3.9 / 15.1 | 8.7 / 5.9 / 16.0 |
+| Separation, strong minus weak | **68.9** | 46.9 |
+| SD of all scores pooled (the reported metric) | 30.4 | 22.2 |
 
-The first write-up reported the last row: pooled SD fell by 27 %, which was read as "more stable scoring". **That reading was wrong.** The pooled SD mixes two things: noise, which should be small, and the gap between strong and weak answers, which should be large. The rubric lowered the pooled SD by squeezing the score range, not by scoring more consistently. Measured properly, the rubric was *less* consistent within every tier and separated strong from weak answers by 22 fewer points.
-
-**Conclusion from this run:** on this test set, the structured rubric did not score answers better than the baseline. Its value in the product is the per-dimension breakdown and feedback, not better ranking.
-
-The first run also had weaknesses that the rewritten script fixes:
-
-- Replies whose score could not be parsed were counted as **0**, which can inflate the SD of the weak tier.
-- The rubric used in the experiment was a shortened version, not the prompt the product actually uses.
-- Prompts and answers were in Chinese; the current version is in English.
-
-### Current evaluation script
-
-[`eval/scoring_eval.py`](eval/scoring_eval.py) scores the **same rubric the product uses** (imported from `api/interview.py`), excludes and counts unparsable replies, and reports repeatability (SD across repeats of one answer), within-tier SD and separation, with pooled SD shown only for reference. Raw scores are saved as JSON in `eval/results/`.
-
-```bash
-python -m eval.scoring_eval --repeats 5
-```
-
-A sensible next step is a larger test set with several questions, and checking whether lower temperature or asking for the per-dimension scores before the total improves repeatability.
+The rubric lowered the pooled SD by squeezing the score range: it was less consistent within every tier and separated strong from weak answers by 22 fewer points. That script also counted unparsable replies as 0 and tested a shortened rubric rather than the production prompt; both are fixed in the current version.
 
 ## Run it
 
@@ -89,13 +89,15 @@ python cli.py                   # terminal 2: interview in the terminal
 python bot/main_bot.py          # or: Discord bot
 streamlit run web/dashboard.py  # dashboard
 pytest                          # tests use a fake LLM, no API key needed
+python -m eval.scoring_eval     # scoring experiment (about 2 minutes on GLM-4-Flash)
 ```
 
 ## Limitations
 
 - Sessions are kept in memory, so they are lost when the API restarts, and the API runs as a single process.
 - The evaluation uses one question and nine answers, which is too small for firm conclusions about the prompts.
-- An LLM judge can be swayed by confident wording; the test set has only a few answers that are confident and wrong.
+- An LLM judge can be swayed by confident wording (see `mid_3` above); the fact-check prompt reduces this but adds noise.
+- With the free GLM-4-Flash model the questions are sometimes slightly off: in one ROS 2 test interview it asked about `NodeHandle`, which is a ROS 1 concept. A stronger model only needs a change in `.env`.
 
 ---
 Code: [MIT](LICENSE).
