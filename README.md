@@ -99,5 +99,13 @@ python -m eval.scoring_eval     # scoring experiment (about 2 minutes on GLM-4-F
 - An LLM judge can be swayed by confident wording (see `mid_3` above); the fact-check prompt reduces this but adds noise.
 - With the free GLM-4-Flash model the questions are sometimes slightly off: in one ROS 2 test interview it asked about `NodeHandle`, which is a ROS 1 concept. A stronger model only needs a change in `.env`.
 
+## How this was built
+
+- Feb–Mar 2026: original design and first implementation, written by me.
+- Oct 2026: revised with Claude Code as an AI pair programmer: English rewrite,
+  refactoring, unit tests, the evaluation scripts, and the re-analysis that
+  corrected the conclusion of my March experiment. These commits are marked
+  as co-authored.
+
 ---
 Code: [MIT](LICENSE).
